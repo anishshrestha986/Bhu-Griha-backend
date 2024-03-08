@@ -1,69 +1,61 @@
-import * as dotenv from 'dotenv';
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
 
-export class ConfigService {
-  private readonly envConfig: Record<string, string>;
-  constructor() {
-    const result = dotenv.config();
-
-    if (result.error) {
-      this.envConfig = process.env;
-    } else {
-      this.envConfig = result.parsed;
-    }
-  }
-
-  public get(key: string): string {
-    return this.envConfig[key];
-  }
-
-  public getPortConfig() {
-    return this.get('PORT');
-  }
+@Injectable()
+export class CustomConfigService {
+  constructor(private configService: ConfigService) {}
 
   public getMongoConfig() {
+    const mongoOptions = this.configService.get<string>('MONGO_OPTIONS') || '';
     return {
       uri:
-        this.get('MONGO_PROTOCOL') +
-        this.get('MONGO_USER') +
+        this.configService.get<string>('MONGO_PROTOCOL') +
+        this.configService.get<string>('MONGO_USER') +
         ':' +
-        this.get('MONGO_PASSWORD') +
+        this.configService.get<string>('MONGO_PASSWORD') +
         '@' +
-        this.get('MONGO_HOST') +
+        this.configService.get<string>('MONGO_HOST') +
         '/' +
-        this.get('MONGO_DATABASE') +
-        '?retryWrites=true&w=majority',
+        this.configService.get<string>('MONGO_DATABASE') +
+        '?retryWrites=true&w=majority' +
+        (mongoOptions ? `&${mongoOptions}` : ''),
     };
   }
 
   public getJwtConfig() {
     return {
-      secret: this.get('JWT_SECRET'),
-      expiresIn: this.get('JWT_EXPIRATION_TIME'),
+      secret: this.configService.get<string>('JWT_SECRET'),
+      access: {
+        expiresIn: this.configService.get<string>('JWT_EXPIRATION_TIME'),
+      },
+      refresh: {
+        expiresIn: this.configService.get<string>('REFRESH_EXPIRATION_TIME'),
+      },
     };
   }
 
   public getMailConfig() {
     return {
       transport: {
-        host: this.get('MAIL_HOST'),
-        port: +this.get('MAIL_PORT'),
+        host: this.configService.get<string>('MAIL_HOST'),
+        port: this.configService.get<number>('MAIL_PORT'),
         auth: {
-          user: this.get('MAIL_USER'),
-          pass: this.get('MAIL_PASSWORD'),
+          user: this.configService.get<string>('MAIL_USER'),
+          pass: this.configService.get<string>('MAIL_PASSWORD'),
         },
       },
       defaults: {
-        from: `"No Reply" <${this.get('MAIL_FROM')}>`,
+        from: `"No Reply" <${this.configService.get<string>('MAIL_FROM')}>`,
       },
     } as SMTPTransport.Options;
   }
 
   public getCloudinaryConfig() {
     return {
-      cloud_name: this.get('CLOUDINARY_CLOUD_NAME'),
-      api_key: this.get('CLOUDINARY_API_KEY'),
-      api_secret: this.get('CLOUDINARY_API_SECRET'),
+      cloud_name: this.configService.get<string>('CLOUDINARY_CLOUD_NAME'),
+      api_key: this.configService.get<string>('CLOUDINARY_API_KEY'),
+      api_secret: this.configService.get<string>('CLOUDINARY_API_SECRET'),
     };
   }
 }

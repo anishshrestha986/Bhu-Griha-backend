@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { IUserDocument } from '@interfaces';
+import { IUserDocument } from './entities';
 
 interface IRequest extends Request {
   user: IUserDocument;

@@ -1,20 +1,60 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import {
+  SwaggerModule,
+  DocumentBuilder,
+  SwaggerDocumentOptions,
+} from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { ConfigService } from './config/config.service';
+import { ConfigService } from '@nestjs/config';
+import { urlencoded } from 'express';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-  const config = new ConfigService();
+  const configService = new ConfigService();
   const logger = new Logger('bootstrap');
-
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    rawBody: true,
     cors: {
       origin: '*',
     },
   });
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
-  logger.log(`Nest application is running on: ${config.getPortConfig()}`);
 
-  await app.listen(3000);
+  const PORT = configService.get<number>('PORT');
+
+  const APP_NAME = 'Real Estate Api';
+  const APP_VERSION = '1.0.0';
+
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle(APP_NAME)
+    .setDescription(`The ${APP_NAME} API description`)
+    .setVersion(APP_VERSION)
+    .addBearerAuth()
+    .build();
+
+  const swaggerOptions: SwaggerDocumentOptions = {
+    operationIdFactory: (_: string, methodKey: string) => methodKey,
+  };
+
+  const document = SwaggerModule.createDocument(
+    app,
+    swaggerConfig,
+    swaggerOptions,
+  );
+
+  SwaggerModule.setup('api-docs', app, document);
+
+  app.use(urlencoded({ limit: '50mb', extended: true }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
+
+  await app.listen(PORT);
+
+  logger.log(`Nest application is running on: ${PORT}`);
 }
 bootstrap();
