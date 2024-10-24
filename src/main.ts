@@ -22,7 +22,7 @@ async function bootstrap() {
 
   const PORT = configService.get<number>('PORT');
 
-  const APP_NAME = 'Real Estate Api';
+  const APP_NAME = 'Task Management Api';
   const APP_VERSION = '1.0.0';
 
   const swaggerConfig = new DocumentBuilder()

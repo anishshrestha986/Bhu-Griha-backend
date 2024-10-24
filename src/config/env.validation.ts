@@ -1,6 +1,5 @@
 import { plainToInstance } from 'class-transformer';
 import {
-  IsEmail,
   IsEnum,
   IsNotEmpty,
   IsNumber,
@@ -48,52 +47,6 @@ class EnvironmentVariables {
   @IsString()
   @IsOptional()
   MONGO_OPTIONS?: string;
-
-  @IsString()
-  JWT_SECRET: string;
-
-  @IsString()
-  JWT_EXPIRATION_TIME: string;
-
-  @IsString()
-  REFRESH_EXPIRATION_TIME: string;
-
-  @IsNumber()
-  @IsPositive()
-  OTP_EXPIRATION_TIME_MINUTE: number;
-
-  @IsString()
-  @IsString()
-  MAIL_HOST: string;
-
-  @IsPositive()
-  @IsNumber()
-  MAIL_PORT: number;
-
-  @IsNotEmpty()
-  @IsString()
-  MAIL_USER: string;
-
-  @IsNotEmpty()
-  @IsString()
-  MAIL_PASSWORD: string;
-
-  @IsNotEmpty()
-  @IsString()
-  @IsEmail()
-  MAIL_FROM: string;
-
-  @IsNotEmpty()
-  @IsString()
-  CLOUDINARY_CLOUD_NAME: string;
-
-  @IsNotEmpty()
-  @IsString()
-  CLOUDINARY_API_KEY: string;
-
-  @IsNotEmpty()
-  @IsString()
-  CLOUDINARY_API_SECRET: string;
 }
 
 export function envValidate(config: Record<string, unknown>) {
